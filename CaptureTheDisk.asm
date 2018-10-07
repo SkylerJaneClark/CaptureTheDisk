@@ -9,6 +9,7 @@
     
   .bank 0
   .org $C000 
+  
 RESET:
   SEI          ; disable IRQs
   CLD          ; disable decimal mode
@@ -24,6 +25,7 @@ RESET:
   STA $4016
   LDA #$00
   STA $4016
+
   
 vblankwait1:       ; First wait for vblank to make sure PPU is ready
   BIT $2002
@@ -46,6 +48,9 @@ clrmem:
 vblankwait2:      ; Second wait for vblank, PPU is ready after this
   BIT $2002
   BPL vblankwait2
+  LDA #$80
+  STA $0000
+  STA $0001
 
 
 
@@ -65,9 +70,6 @@ LoadPalettesLoop:
   BNE LoadPalettesLoop  ;if x = $20, 32 bytes copied, all done
 
 sprite: LDX #$00
-		LDA #%01101111
-		STA $00F0
-		STA $00F1
 		LDA #$00
 		STA $00F3
 spriteLoop: 
@@ -76,23 +78,20 @@ spriteLoop:
   ASL A
   ASL A
   TAX
-  LDY $00F0            ; set Y to a set value
+  
   LDA #%00000001      ; sets byte with first bit
   AND $00FF           ; Filter only first bit using A       
   ASL A               ; multiply A by 8
   ASL A
   ASL A
-  STY $00FE
-  ADC $00FE           ; adds Y to A
+  ADC $0000           ; adds Y to A
   STA $0200, X        ; put sprite 0 in ($50 + X) of screen vert
   
-  LDY $00F1           ; set Y to a set value
   LDA #%00000010      ; sets byte with first bit
   AND $00FF           ; Filter only first bit using A  
   ASL A               ; multiply A by 4
   ASL A
-  STY $00FE
-  ADC $00FE           ; adds Y to A
+  ADC $0001           ; adds Y to A
   STA $0203, X        ; put sprite 0 in center ($50 + Y) of screen horiz
 
   LDA #$00
@@ -145,25 +144,25 @@ NMI:
   AND #%00000001
   CMP #%00000001
   BNE next1
-  DEC $00F0
+  DEC $0000
   
 next1:LDA $4016
   AND #%00000001
   CMP #%00000001
   BNE next2
-  INC $00F0
+  INC $0000
   
 next2:LDA $4016
   AND #%00000001
   CMP #%00000001
   BNE next3
-  DEC $00F1
+  DEC $0001
   
 next3:LDA $4016
   AND #%00000001
   CMP #%00000001
-  BNE spriteLoop2
-  INC $00F1
+  BNE sprite2
+  INC $0001
 
 sprite2: 
   LDX #$00
@@ -173,23 +172,22 @@ spriteLoop2:
   ASL A
   ASL A
   TAX
-  LDY $00F0            ; set Y to a set value
+  
+  
   LDA #%00000001      ; sets byte with first bit
   AND $00FF           ; Filter only first bit using A       
   ASL A               ; multiply A by 8
   ASL A
   ASL A
-  STY $00FE
-  ADC $00FE           ; adds Y to A
+  ADC $0000           ; adds Y to A
   STA $0200, X        ; put sprite 0 in ($50 + X) of screen vert
   
-  LDY $00F1           ; set Y to a set value
+
   LDA #%00000010      ; sets byte with first bit
   AND $00FF           ; Filter only first bit using A  
   ASL A               ; multiply A by 4
   ASL A
-  STY $00FE
-  ADC $00FE           ; adds Y to A
+  ADC $0001           ; adds Y to A
   STA $0203, X        ; put sprite 0 in center ($50 + Y) of screen horiz
 
 
