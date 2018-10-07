@@ -64,9 +64,11 @@ sprite: LDX #$00
 		LDA #%01101111
 		STA $00F0
 		STA $00F1
+		LDA #$00
+		STA $00F3
 spriteLoop: 
-  STX $00FF
   TXA
+  STX $00FF
   ASL A
   ASL A
   TAX
@@ -119,17 +121,54 @@ end:STA $0202, X        ; color = 0, with proper flipping
 
   LDA #%00010000   ; enable sprites
   STA $2001
-
 Forever:
   JMP Forever     ;jump back to Forever, infinite loop
   
  
 
 NMI:
+
+  
+  sprite2: LDX #$00
+  INC $00F0
+  INC $00F1
+spriteLoop2: 
+  TXA
+  STX $00FF
+  ASL A
+  ASL A
+  TAX
+  LDY $00F0            ; set Y to a set value
+  LDA #%00000001      ; sets byte with first bit
+  AND $00FF           ; Filter only first bit using A       
+  ASL A               ; multiply A by 8
+  ASL A
+  ASL A
+  STY $00FE
+  ADC $00FE           ; adds Y to A
+  STA $0200, X        ; put sprite 0 in ($50 + X) of screen vert
+  
+  LDY $00F1           ; set Y to a set value
+  LDA #%00000010      ; sets byte with first bit
+  AND $00FF           ; Filter only first bit using A  
+  ASL A               ; multiply A by 4
+  ASL A
+  STY $00FE
+  ADC $00FE           ; adds Y to A
+  STA $0203, X        ; put sprite 0 in center ($50 + Y) of screen horiz
+
+
+  LDX $00FF
+  INX
+  CPX #$04
+  BNE spriteLoop2
+
+
   LDA #$00
   STA $2003  ; set the low byte (00) of the RAM address
   LDA #$02
   STA $4014  ; set the high byte (02) of the RAM address, start the transfer
+  
   
   RTI        ; return from interrupt
  
