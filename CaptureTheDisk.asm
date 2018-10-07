@@ -20,7 +20,11 @@ RESET:
   STX $2000    ; disable NMI
   STX $2001    ; disable rendering
   STX $4010    ; disable DMC IRQs
-
+  LDA #$01
+  STA $4016
+  LDA #$00
+  STA $4016
+  
 vblankwait1:       ; First wait for vblank to make sure PPU is ready
   BIT $2002
   BPL vblankwait1
@@ -127,11 +131,42 @@ Forever:
  
 
 NMI:
-
+  LatchController:
+  LDA #$01
+  STA $4016
+  LDA #$00
+  STA $4016
   
-  sprite2: LDX #$00
+  LDA $4016
+  LDA $4016
+  LDA $4016
+  LDA $4016
+  LDA $4016
+  AND #%00000001
+  CMP #%00000001
+  BNE next1
+  DEC $00F0
+  
+next1:LDA $4016
+  AND #%00000001
+  CMP #%00000001
+  BNE next2
   INC $00F0
+  
+next2:LDA $4016
+  AND #%00000001
+  CMP #%00000001
+  BNE next3
+  DEC $00F1
+  
+next3:LDA $4016
+  AND #%00000001
+  CMP #%00000001
+  BNE spriteLoop2
   INC $00F1
+
+sprite2: 
+  LDX #$00
 spriteLoop2: 
   TXA
   STX $00FF
